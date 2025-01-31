@@ -18,6 +18,4 @@
 
 ##  Граф ветвления (Network Graph)
 
-Для просмотра графа ветвления перейдите по ссылке:
-
-[GitHub Network Graph](https://github.com/Daniil19566/DevOps_tasks/network)
+![Network Graph](images/network_graph.png)
