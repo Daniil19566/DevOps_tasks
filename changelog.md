@@ -5,3 +5,9 @@
 - Initial project setup
 - Added README.md, install.md, changelog.md
 - Created run.sh for project startup
+
+## [0.2.0] - 2025-01-31
+### Added
+- Implemented semantic versioning
+- Updated changelog format
+
