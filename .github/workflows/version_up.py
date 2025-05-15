@@ -1,68 +1,42 @@
-import argparse
-import re
-import datetime
-
-VERSION_FILE = 'version'
-VERSION_LOG_FILE = 'version_log'
+import sys
+from datetime import datetime
 
 def read_version():
-    try:
-        with open(VERSION_FILE, 'r') as f:
-            version = f.read().strip()
-            if not re.match(r'^\d+\.\d+\.\d+$', version):
-                print(f"Version file contains invalid version format: {version}. Resetting to 1.0.0")
-                version = '1.0.0'
-                write_version(version)
-
-    except FileNotFoundError:
-        print("Version file not found. Creating new file with version 1.0.0")
-        version = '1.0.0'
-        write_version(version)
-    return version
-
+    with open('version', 'r') as f:
+        return f.read().strip()
 
 def write_version(version):
-    with open(VERSION_FILE, 'w') as f:
+    with open('version', 'w') as f:
         f.write(version)
 
+def append_log(old_version, new_version, update_type):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open('version_log', 'a') as f:
+        f.write(f"[{new_version}] <- [{old_version}] {update_type} up | {timestamp}\n")
 
-def update_version(version, update_type):
+def bump_version(version, update_type):
     major, minor, patch = map(int, version.split('.'))
-
-    if update_type == 'major':
-        major += 1
-        minor = 0
-        patch = 0
-    elif update_type == 'minor':
+    if update_type == 'minor':
         minor += 1
         patch = 0
     elif update_type == 'patch':
         patch += 1
-    else:
-        raise ValueError("Invalid update type. Must be 'major', 'minor', or 'patch'.")
-
     return f"{major}.{minor}.{patch}"
 
-def log_version_update(old_version, new_version, update_type):
-    timestamp = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S.%f")[:-3]  #Remove last 3 microsecond digits for cleaner output
-    log_entry = f"[{new_version}] < [{old_version}] [{timestamp}] {update_type} update\n"
-
-    with open(VERSION_LOG_FILE, 'a') as f:
-        f.write(log_entry)
-
 def main():
-    parser = argparse.ArgumentParser(description="Update version according to semantic versioning.")
-    parser.add_argument("update_type", choices=['major', 'minor', 'patch'],
-                        help="The type of update (major, minor, or patch).")
+    if len(sys.argv) < 2 or sys.argv[1] not in ('minor', 'patch'):
+        print("Usage: version_up.py [minor|patch]", file=sys.stderr)
+        sys.exit(1)
 
-    args = parser.parse_args()
-
+    update_type = sys.argv[1]
     old_version = read_version()
-    new_version = update_version(old_version, args.update_type)
+    new_version = bump_version(old_version, update_type)
+
     write_version(new_version)
-    log_version_update(old_version, new_version, args.update_type)
+    append_log(old_version, new_version, update_type)
 
-    print(f"Version updated from {old_version} to {new_version}")
+    # Только новая версия — для GitHub Actions
+    print(new_version)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
