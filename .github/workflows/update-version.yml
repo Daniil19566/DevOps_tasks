@@ -1,0 +1,60 @@
+name: Update Version
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'hotfix/')
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python requirements
+        run: pip install -r requirements.txt || true  # если появятся зависимости
+
+      - name: Determine update type
+        id: version_type
+        run: |
+          if [[ "${{ github.head_ref }}" == feature/* ]]; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.head_ref }}" == hotfix/* ]]; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run version update script
+        id: run_script
+        run: |
+          VERSION=$(python version_up.py ${{ steps.version_type.outputs.type }})
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+
+      - name: Commit version update
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git checkout "${{ github.head_ref }}"
+          git add version version_log
+          git commit -m "[${{ steps.run_script.outputs.version }}] <- $(cat version_log | tail -n 2 | head -n 1 | grep -o '\[[0-9.]*\]' | head -n 1 | tr -d '[]') ${{ steps.version_type.outputs.type }} up" || echo "No changes to commit"
+          git push
+
+
+      - name: Add version label to PR
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.run_script.outputs.version }}

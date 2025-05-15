@@ -1,0 +1,50 @@
+name: Security Checks
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  antivirus:
+    name: Antivirus Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install ClamAV and run scan
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clamav
+          clamscan -r .
+
+  bandit:
+    name: Bandit Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Bandit
+        run: pip install bandit
+      - name: Run Bandit
+        run: bandit -r .
+
+  pylint:
+    name: Pylint Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Pylint
+        run: pip install pylint
+      - name: Run Pylint
+        run: pylint *.py || true
+
+  flake8:
+    name: Flake8 Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Flake8
+        run: pip install flake8
+      - name: Run Flake8
+        run: flake8 . --count --show-source --statistics || true
