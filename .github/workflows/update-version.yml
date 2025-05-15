@@ -36,8 +36,9 @@ jobs:
       - name: Run version update script
         id: run_script
         run: |
-          VERSION=$(python .github/workflows/version_up.py ${{ steps.version_type.outputs.type }})
+          VERSION=$(python version_up.py ${{ steps.version_type.outputs.type }})
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
 
       - name: Commit version update
         run: |
