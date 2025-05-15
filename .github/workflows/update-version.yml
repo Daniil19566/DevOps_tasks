@@ -44,9 +44,11 @@ jobs:
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git checkout "${{ github.head_ref }}"
           git add version version_log
           git commit -m "[${{ steps.run_script.outputs.version }}] <- $(cat version_log | tail -n 2 | head -n 1 | grep -o '\[[0-9.]*\]' | head -n 1 | tr -d '[]') ${{ steps.version_type.outputs.type }} up" || echo "No changes to commit"
           git push
+
 
       - name: Add version label to PR
         uses: actions-ecosystem/action-add-labels@v1
