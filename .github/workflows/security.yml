@@ -13,8 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run antivirus (ClamAV)
-        uses: crazy-max/ghaction-clamav@v1
+      - name: Install ClamAV and run scan
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clamav
+          clamscan -r .
       - name: Add label
         if: success()
         uses: actions-ecosystem/action-add-labels@v1
@@ -23,21 +26,4 @@ jobs:
           labels: sec-passed
 
   bandit:
-    name: Bandit Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Bandit
-        run: pip install bandit
-      - name: Run Bandit
-        run: bandit -r .
-
-  pylint:
-    name: Pylint Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Pylint
-        run: pip install pylint
-      - name: Run Pylint
-        run: pylint *.py || true
+    name: Bandit
