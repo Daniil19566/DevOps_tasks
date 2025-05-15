@@ -26,4 +26,21 @@ jobs:
           labels: sec-passed
 
   bandit:
-    name: Bandit
+    name: Bandit Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Bandit
+        run: pip install bandit
+      - name: Run Bandit
+        run: bandit -r .
+
+  pylint:
+    name: Pylint Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Pylint
+        run: pip install pylint
+      - name: Run Pylint
+        run: pylint *.py || true
