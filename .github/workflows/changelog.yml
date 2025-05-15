@@ -26,7 +26,7 @@ jobs:
         run: echo "version=$(cat version)" >> $GITHUB_OUTPUT
 
       - name: Update changelog
-        run: python update_changelog.py "${{ steps.get_version.outputs.version }}" "${{ github.head_ref }}"
+        run: python update_changelog.py "${{ steps.get_version.outputs.version }}" "${{ github.event.pull_request.head.ref }}"
 
       - name: Commit changelog
         run: |
@@ -37,13 +37,4 @@ jobs:
           git push
 
       - name: Add changelog label
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: changelog
-
-      - name: Upload changelog artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: changelog
-          path: changelog.md
+        uses: actions-ecosystem/action-add-labels
