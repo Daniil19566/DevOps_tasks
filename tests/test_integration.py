@@ -1,3 +1,4 @@
-def test_integration_simulation():
+def test_placeholder():
     result = "OK"
-    assert result == "OK"
+    if result != "OK":
+        raise AssertionError("Result is not OK")
