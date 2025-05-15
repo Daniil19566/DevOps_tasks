@@ -36,12 +36,13 @@ jobs:
           git commit -m "Update changelog for version ${{ steps.get_version.outputs.version }}" || echo "No changes to commit"
           git push
 
-      - name: Add changelog label
+      - name: Add version label to PR
         uses: actions-ecosystem/action-add-labels@v1
         continue-on-error: true
         with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            labels: changelog
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.run_script.outputs.version }}
+
 
 
       - name: Upload changelog artifact
