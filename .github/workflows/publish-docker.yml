@@ -44,3 +44,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: dockerhub
 
+      - name: Push README to DockerHub
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: sirlindaniil450/daniil19566
+          readme-filepath: ./readme.md
+
