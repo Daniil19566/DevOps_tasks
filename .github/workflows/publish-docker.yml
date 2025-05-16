@@ -51,9 +51,7 @@ jobs:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            ✅ Новая версия опубликована!
-            🐳 Образ: `sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}`
-            📄 Changelog в changelog.md
+            Новая версия опубликована!
 
 
 
