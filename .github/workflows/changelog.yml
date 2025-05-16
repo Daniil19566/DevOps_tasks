@@ -43,4 +43,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: changelog
 
-  
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: changelog
+          path: changelog.md
