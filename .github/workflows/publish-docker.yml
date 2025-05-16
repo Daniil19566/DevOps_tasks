@@ -25,6 +25,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+
       - name: Read version
         id: vars
         run: echo "VERSION=$(cat version)" >> $GITHUB_OUTPUT
