@@ -71,6 +71,13 @@ jobs:
             *Название:* `daniil19566`
             *Тег:* `${{ steps.vars.outputs.VERSION }}`
             *Полное имя:* `sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}`
+      - name: Send changelog file
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          document: changelog.md
+
 
 
 
