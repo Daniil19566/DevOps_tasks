@@ -1,12 +1,12 @@
+
+
 name: Publish to DockerHub
 
 on:
   push:
     branches:
-      - main  # или другая ветка, где ты хочешь триггерить публикацию
-    paths:
-      - '**/Dockerfile'
-      - 'version'
+      - main
+      - feature/*
 
 jobs:
   publish:
