@@ -45,12 +45,34 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: dockerhub
 
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date '+%Y.%m.%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: "Новая версия опубликована!"
+          message: |
+            *Новый выпуск изменений*
+
+            *Проект:* `DevOps_tasks`
+            *Версия:* `${{ steps.vars.outputs.VERSION }}`
+            *Дата:* `${{ steps.date.outputs.DATE }}`
+            *Автор:* `${{ github.actor }}`
+
+            *Информация о Git-репозитории*
+            *GIT MR:* [${{ github.event.number }}](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
+            *GIT TAG:* `${{ steps.vars.outputs.VERSION }}`
+
+            *Информация о Docker-репозитории*
+            *Владелец:* `sirlindaniil450`
+            *Название:* `daniil19566`
+            *Тег:* `${{ steps.vars.outputs.VERSION }}`
+            *Полное имя:* `sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}`
+
+
 
 
 
