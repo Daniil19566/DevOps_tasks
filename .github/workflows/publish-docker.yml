@@ -36,8 +36,11 @@ jobs:
           push: true
           tags: sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}
 
+
       - name: Add dockerhub label
+        if: github.event_name == 'pull_request'
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: dockerhub
+
