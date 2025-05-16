@@ -44,7 +44,7 @@ jobs:
           labels: changelog
 
       - name: Upload changelog artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@c9e4c6a409eea5ef7b2ae3a9c9f6597809372c74
         with:
           name: changelog
           path: changelog.md
