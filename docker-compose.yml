@@ -1,0 +1,8 @@
+version: "1.13.0"
+
+services:
+  app:
+    image: sirlindaniil450/daniil19566:latest
+    ports:
+      - "8080:8080"
+    restart: always
