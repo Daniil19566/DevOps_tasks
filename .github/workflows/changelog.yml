@@ -46,7 +46,8 @@ jobs:
 
 
       - name: Upload changelog artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: changelog
           path: changelog.md
+
