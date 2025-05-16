@@ -50,5 +50,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: sirlindaniil450/daniil19566
-          readme-filepath: ./readme.md
+          readme-filepath: ./README.md
 
