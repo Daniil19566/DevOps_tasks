@@ -1,0 +1,21 @@
+name: Deploy to PROD
+
+on:
+  workflow_dispatch: # можно поменять на push, если нужно автозапускать
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Pull latest image
+        run: docker pull sirlindaniil450/daniil19566:latest
+
+      - name: Run container with docker-compose
+        run: docker-compose up -d
