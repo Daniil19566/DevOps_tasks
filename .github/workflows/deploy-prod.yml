@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write 
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -39,24 +39,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
 
       - name: Add PROD label to related PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
               commit_sha: context.sha
             });
 
-            if (pulls.length > 0) {
-              const prNumber = pulls[0].number;
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                labels: ['PROD']
-              });
-              console.log(`Added 'PROD' label to PR #${prNumber}`);
-            } else {
-              console.log('No associated PR found.');
+            if (prs.data.length === 0) {
+              console.log('❌ No pull request found for this commit');
+              return;
+            }
+
+            const prNumber = prs.data[0].number;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['PROD']
+            });
+
+            console.log(`✅ Added 'PROD' label to PR #${prNumber}`);
