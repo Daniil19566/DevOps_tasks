@@ -19,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -34,3 +33,13 @@ jobs:
           tag_name: v${{ steps.vars.outputs.VERSION }}
           name: Release v${{ steps.vars.outputs.VERSION }}
           body: Автоматическая сборка и релиз
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+
+      - name: Add PROD label to PR
+        if: github.event_name == 'pull_request'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: PROD
+
