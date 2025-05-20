@@ -34,5 +34,3 @@ jobs:
           tag_name: v${{ steps.vars.outputs.VERSION }}
           name: Release v${{ steps.vars.outputs.VERSION }}
           body: Автоматическая сборка и релиз
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
