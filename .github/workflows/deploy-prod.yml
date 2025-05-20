@@ -1,21 +1,28 @@
 name: Deploy to PROD
 
 on:
-  workflow_dispatch: # можно поменять на push, если нужно автозапускать
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Login to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      - name: Read version
+        id: vars
+        run: echo "VERSION=$(cat version)" >> $GITHUB_OUTPUT
 
-      - name: Pull latest image
-        run: docker pull sirlindaniil450/daniil19566:latest
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.vars.outputs.VERSION }}
+          name: Release v${{ steps.vars.outputs.VERSION }}
+          body: Автоматический релиз из GitHub Actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
-      - name: Run container with docker-compose
-        run: docker-compose up -d
