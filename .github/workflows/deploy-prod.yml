@@ -35,4 +35,4 @@ jobs:
           name: Release v${{ steps.vars.outputs.VERSION }}
           body: Автоматическая сборка и релиз
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
