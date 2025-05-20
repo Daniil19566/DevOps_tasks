@@ -4,10 +4,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy with Docker Compose
+        run: docker-compose up -d
+
   release:
+    needs: deploy
     runs-on: ubuntu-latest
     permissions:
-      contents: write 
+      contents: write
 
     steps:
       - name: Checkout code
@@ -22,7 +33,6 @@ jobs:
         with:
           tag_name: v${{ steps.vars.outputs.VERSION }}
           name: Release v${{ steps.vars.outputs.VERSION }}
-          body: Автоматический релиз из GitHub Actions
+          body: Автоматическая сборка и релиз
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
