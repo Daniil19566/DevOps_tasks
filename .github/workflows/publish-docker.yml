@@ -3,7 +3,11 @@ name: Publish to DockerHub
 on:
   push:
     branches:
+      - main
       - feature/test-pipeline
+    paths:
+      - '**/Dockerfile'
+      - 'version'
 
 jobs:
   publish:
@@ -25,7 +29,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-
       - name: Read version
         id: vars
         run: echo "VERSION=$(cat version)" >> $GITHUB_OUTPUT
@@ -37,9 +40,7 @@ jobs:
           push: true
           tags: sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}
 
-
       - name: Add dockerhub label
-        if: github.event_name == 'pull_request'
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,16 +72,10 @@ jobs:
             *Название:* `daniil19566`
             *Тег:* `${{ steps.vars.outputs.VERSION }}`
             *Полное имя:* `sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}`
+
       - name: Send changelog file
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           document: changelog.md
-
-
-
-
-
-
-
