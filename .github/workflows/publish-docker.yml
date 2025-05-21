@@ -3,7 +3,8 @@ name: Publish to DockerHub
 on:
   push:
     branches:
-      - main  # или другая ветка, где ты хочешь триггерить публикацию
+      - main
+      - feature/test-pipeline
     paths:
       - '**/Dockerfile'
       - 'version'
@@ -37,10 +38,44 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/yourproject:${{ steps.vars.outputs.VERSION }}
+          tags: sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}
 
       - name: Add dockerhub label
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: dockerhub
+
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date '+%Y.%m.%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            *Новый выпуск изменений*
+
+            *Проект:* `DevOps_tasks`
+            *Версия:* `${{ steps.vars.outputs.VERSION }}`
+            *Дата:* `${{ steps.date.outputs.DATE }}`
+            *Автор:* `${{ github.actor }}`
+
+            *Информация о Git-репозитории*
+            *GIT MR:* [${{ github.event.number }}](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
+            *GIT TAG:* `${{ steps.vars.outputs.VERSION }}`
+
+            *Информация о Docker-репозитории*
+            *Владелец:* `sirlindaniil450`
+            *Название:* `daniil19566`
+            *Тег:* `${{ steps.vars.outputs.VERSION }}`
+            *Полное имя:* `sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}`
+
+      - name: Send changelog file
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          document: changelog.md
