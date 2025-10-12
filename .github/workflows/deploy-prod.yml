@@ -19,12 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Read version
-        id: ver
-        run: |
-          set /p VER=<version
-          echo v=%VER%>> %GITHUB_OUTPUT%
-
       - name: Ensure Docker is available
         run: |
           docker version
