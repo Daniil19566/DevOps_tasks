@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   update-version:
-    # выполняем только если PR из этого же репозитория (иначе push не сработает)
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository
             && (startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'hotfix/')) }}
     runs-on: ubuntu-latest
@@ -57,6 +56,7 @@ jobs:
       - name: Add version label to PR
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const ver = '${{ steps.run_script.outputs.version }}';
             const label = `v${ver}`;
