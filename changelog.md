@@ -1,3 +1,6 @@
+## Version 1.16.0
+- Merged from branch `feature/tests`
+
 ## Version 1.14.0
 - Merged from branch `feature/test-pipeline`
 
