@@ -13,7 +13,9 @@ jobs:
   deploy:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
     runs-on: [self-hosted, Windows, X64]   # метки должны совпадать с твоим раннером
-
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
