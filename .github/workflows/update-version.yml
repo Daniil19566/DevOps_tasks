@@ -37,7 +37,7 @@ jobs:
           else
             echo "type=patch" >> $GITHUB_OUTPUT
           fi
-
+      
       - name: Run version update script
         id: run_script
         run: |
