@@ -58,26 +58,26 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const ver = '${{ steps.run_script.outputs.version }}';
-            const label = `v${ver}`;
-            try {
-              await github.rest.issues.getLabel({
+              const ver = '${{ steps.run_script.outputs.version }}';
+              const label = `v${ver}`;
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label
+                });
+              } catch (e) {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  color: '0366d6',
+                  description: 'Release version'
+                });
+              }
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                name: label
-              });
-            } catch (e) {
-              await github.rest.issues.createLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: label,
-                color: '0366d6',
-                description: 'Release version'
-              });
-            }
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              labels: [label]
-            });
+                issue_number: context.payload.pull_request.number,
+                labels: [label]
+               });
