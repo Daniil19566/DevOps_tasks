@@ -2,8 +2,6 @@ name: Deploy to PROD
 
 on:
   workflow_dispatch: {}
-  pull_request:
-    types: [closed]
 
 permissions:
   contents: read
@@ -11,23 +9,22 @@ permissions:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
-    runs-on: [self-hosted, Windows, X64]   # метки должны совпадать с твоим раннером
+    runs-on: [self-hosted, Windows, X64]  
     defaults:
       run:
         shell: powershell
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Read version
         id: ver
-        shell: pwsh
         run: |
           $v = (Get-Content -Raw version).Trim()
           "v=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
 
       - name: Ensure Docker is available
-        shell: pwsh
         run: |
           docker version
           docker info
@@ -39,9 +36,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Pull & run container
-        shell: pwsh
         run: |
+  
           $image = "${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:latest"
+        
           Write-Host "Deploy image: $image"
           docker pull $image
           docker rm -f devops-app 2>$null
@@ -49,21 +47,9 @@ jobs:
           Start-Sleep -Seconds 3
           (Invoke-WebRequest -UseBasicParsing http://localhost:8080).StatusCode
 
-      - name: Label PR as PROD (if PR exists)
+      - name: Label PR as PROD (if triggered by PR merge)
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        uses: actions/github-script@v7
+        uses: actions-ecosystem/action-add-labels@v1
         with:
-          script: |
-            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha
-            });
-            if (prs.length) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prs[0].number,
-                labels: ['PROD']
-              });
-            }
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: PROD
