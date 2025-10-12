@@ -9,17 +9,18 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, Windows, X64]  
+    runs-on: [self-hosted, Windows, X64]
+
     defaults:
       run:
-        shell: powershell
+        shell: cmd
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Read version
         id: ver
-        shell: cmd
         run: |
           set /p VER=<version
           echo v=%VER%>> %GITHUB_OUTPUT%
@@ -37,15 +38,12 @@ jobs:
 
       - name: Pull & run container
         run: |
-  
-          $image = "${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:latest"
-        
-          Write-Host "Deploy image: $image"
-          docker pull $image
-          docker rm -f devops-app 2>$null
-          docker run -d --name devops-app -p 8080:80 $image
-          Start-Sleep -Seconds 3
-          (Invoke-WebRequest -UseBasicParsing http://localhost:8080).StatusCode
+          set IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:latest
+          echo Deploy image: %IMAGE%
+          docker pull %IMAGE%
+          docker rm -f devops-app 2>nul
+          docker run -d --name devops-app -p 8080:80 %IMAGE%
+          powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 3; (Invoke-WebRequest -UseBasicParsing http://localhost:8080).StatusCode | Out-Host"
 
       - name: Label PR as PROD (if triggered by PR merge)
         if: ${{ github.event_name != 'workflow_dispatch' }}
