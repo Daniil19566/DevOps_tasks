@@ -2,49 +2,72 @@ name: Publish to DockerHub
 
 on:
   push:
-    branches:
-      - main
-      - feature/test-pipeline
+    branches: [ main, master ]
     paths:
       - '**/Dockerfile'
       - 'version'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Read version (prepend v)
+        id: vars
+        shell: bash
+        run: |
+          RAW=$(cat version | tr -d '\r\n')
+          echo "VERSION=$RAW" >> $GITHUB_OUTPUT
+          echo "VTAG=v$RAW"    >> $GITHUB_OUTPUT
+          echo "Version: $RAW  Tag: v$RAW"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Read version
-        id: vars
-        run: echo "VERSION=$(cat version)" >> $GITHUB_OUTPUT
-
       - name: Build and push image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:${{ steps.vars.outputs.VTAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:latest
 
-      - name: Add dockerhub label
-        uses: actions-ecosystem/action-add-labels@v1
+      - name: Label PR with 'dockerhub' (if exists)
+        uses: actions/github-script@v7
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: dockerhub
+          script: |
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha
+            });
+            if (prs.length > 0) {
+              const pr = prs[0];
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['dockerhub']
+              });
+              core.info(`Labeled PR #${pr.number} with 'dockerhub'.`);
+            } else {
+              core.info('No PR associated with this commit. Skipping label.');
+            }
 
       - name: Get current date
         id: date
@@ -57,21 +80,15 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
             *Новый выпуск изменений*
-
             *Проект:* `DevOps_tasks`
-            *Версия:* `${{ steps.vars.outputs.VERSION }}`
+            *Версия:* `${{ steps.vars.outputs.VTAG }}`
             *Дата:* `${{ steps.date.outputs.DATE }}`
             *Автор:* `${{ github.actor }}`
-
-            *Информация о Git-репозитории*
-            *GIT MR:* [${{ github.event.number }}](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})
-            *GIT TAG:* `${{ steps.vars.outputs.VERSION }}`
-
-            *Информация о Docker-репозитории*
-            *Владелец:* `sirlindaniil450`
-            *Название:* `daniil19566`
-            *Тег:* `${{ steps.vars.outputs.VERSION }}`
-            *Полное имя:* `sirlindaniil450/daniil19566:${{ steps.vars.outputs.VERSION }}`
+            
+            *DockerHub*
+            *Репозиторий:* `${{ secrets.DOCKERHUB_USERNAME }}/daniil19566`
+            *Тег:* `${{ steps.vars.outputs.VTAG }}`
+            *Полное имя:* `${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:${{ steps.vars.outputs.VTAG }}`
 
       - name: Send changelog file
         uses: appleboy/telegram-action@master
