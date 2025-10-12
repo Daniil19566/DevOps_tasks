@@ -1,11 +1,2 @@
-# Базовый образ
-FROM python:3.10-slim
-
-# Установка зависимостей
-WORKDIR /app
-
-# Копируем весь проект
-COPY . .
-
-# Команда по умолчанию (замени на свою)
-CMD ["python", "main.py"]
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/index.html
