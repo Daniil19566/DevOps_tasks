@@ -1,60 +1,68 @@
 name: Deploy to PROD
 
 on:
+  workflow_dispatch: {}
   pull_request:
     types: [closed]
-    branches:
-      - master  # измени при необходимости, если у тебя ветка называется main
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
-    runs-on: self-hosted
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    runs-on: [self-hosted, Windows, X64]   # метки должны совпадать с твоим раннером
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Deploy with Docker Compose
-        run: docker-compose up -d
-
-  release:
-    if: github.event.pull_request.merged == true
-    needs: deploy
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Read version
-        id: vars
-        run: echo "VERSION=$(cat version)" >> $GITHUB_OUTPUT
+        id: ver
+        shell: pwsh
+        run: |
+          $v = (Get-Content -Raw version).Trim()
+          "v=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.vars.outputs.VERSION }}
-          name: Release v${{ steps.vars.outputs.VERSION }}
-          body: Автоматическая сборка и релиз
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+      - name: Ensure Docker is available
+        shell: pwsh
+        run: |
+          docker version
+          docker info
 
-      - name: Add PROD label to PR
-        uses: actions/github-script@v6
+      - name: Docker login
+        uses: docker/login-action@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pull & run container
+        shell: pwsh
+        run: |
+          # 👉 если нужно быстро проверить с latest, замени строку ниже на: $image = "${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:latest"
+          $image = "${{ secrets.DOCKERHUB_USERNAME }}/daniil19566:v${{ steps.ver.outputs.v }}"
+          Write-Host "Deploy image: $image"
+          docker pull $image
+          docker rm -f devops-app 2>$null
+          docker run -d --name devops-app -p 8080:80 $image
+          Start-Sleep -Seconds 3
+          (Invoke-WebRequest -UseBasicParsing http://localhost:8080).StatusCode
+
+      - name: Label PR as PROD (if PR exists)
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: actions/github-script@v7
+        with:
           script: |
-            const prNumber = context.payload.pull_request.number;
-
-            await github.rest.issues.addLabels({
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prNumber,
-              labels: ['PROD']
+              commit_sha: context.sha
             });
-
-            console.log(`Added 'PROD' label to PR #${prNumber}`);
+            if (prs.length) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prs[0].number,
+                labels: ['PROD']
+              });
+            }
